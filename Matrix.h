@@ -24,10 +24,17 @@
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
-#include <inttypes.h>
+#if (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
 
-class Sprite;
-class TimeWord;
+#include "Sprite.h"
+#include "ClockWord.h"
+
+#define PIXEL_ON HIGH
+#define PIXEL_OFF LOW
 
 class Matrix
 {
@@ -38,6 +45,9 @@ class Matrix
 	uint32_t _multiplexLastTimestamp = 0;
 	uint8_t _multiplexPeriod = 50;
 	uint8_t _multiplexCurrentColumn = 0;
+	boolean _flash_enabled;
+	uint16_t _flash_on_duration;
+	uint16_t _flash_off_duration;
 	
 	void buffer(uint8_t, uint8_t, uint8_t);
 	void updateDrivers();
@@ -46,10 +56,17 @@ class Matrix
 	Matrix(uint8_t, uint8_t);
 	void clear();
 	void loop();
+	
 	void setBrightness(uint8_t);
+	
+	void flashOn();
+	void flashOff();
+	void setFlash(uint16_t);
+	void setFlash(uint16_t, uint16_t);
+	
 	void setPixels(uint8_t, uint8_t, uint8_t);
 	void setPixels(uint8_t, uint8_t, Sprite);
-	void setPixels(TimeWord);
+	void setPixels(ClockWord);
 	
 };
 

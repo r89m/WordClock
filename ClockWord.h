@@ -6,12 +6,16 @@
  */ 
 
 
-#ifndef TIMEWORD_H_
-#define TIMEWORD_H_
+#ifndef CLOCKWORD_H_
+#define CLOCKWORD_H_
 
-#include <inttypes.h>
+#if (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
 
-class TimeWord{
+class ClockWord{
 	
 	private:
 		uint8_t _x;
@@ -22,8 +26,8 @@ class TimeWord{
 		void setCustomMask(uint16_t);
 		
 	public:
-		TimeWord(uint8_t, uint8_t, uint8_t);	
-		TimeWord(uint8_t, uint8_t, uint8_t, uint16_t);
+		ClockWord(uint8_t, uint8_t, uint8_t);	
+		ClockWord(uint8_t, uint8_t, uint8_t, uint16_t);
 		uint8_t getLength() const;
 		uint8_t getBitAt(uint8_t) const;
 		uint8_t getX() const;
@@ -32,4 +36,4 @@ class TimeWord{
 
 
 
-#endif /* TIMEWORD_H_ */
+#endif /* CLOCKWORD_H_ */

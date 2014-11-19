@@ -21,15 +21,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Sprite.h"
 #include "Matrix.h"
-#include "TimeWord.h"
-
-#if (ARDUINO >= 100)
-#include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
 
 Matrix::Matrix(uint8_t width, uint8_t height){
 	
@@ -91,6 +83,28 @@ void Matrix::setBrightness(uint8_t brightness){
 	
 }
 
+void Matrix::flashOn(){
+	
+	_flash_enabled = true;
+}
+
+void Matrix::flashOff(){
+	
+	_flash_enabled = false;
+}
+
+void Matrix::setFlash(uint16_t duration){
+	
+	_flash_on_duration = duration;
+	_flash_off_duration = duration;
+}
+
+void Matrix::setFlash(uint16_t on_duration, uint16_t off_duration){
+	
+	_flash_on_duration = on_duration;
+	_flash_off_duration = off_duration;
+}
+
 void Matrix::setPixels(uint8_t x, uint8_t y, uint8_t value){
 	
 	buffer(x, y, value);
@@ -105,7 +119,7 @@ void Matrix::setPixels(uint8_t x, uint8_t y, Sprite sprite){
 	}
 }
 
-void Matrix::setPixels(TimeWord timeWord){
+void Matrix::setPixels(ClockWord timeWord){
 	
 	for(uint8_t i = 0; i < timeWord.getLength(); i++){
 		buffer(timeWord.getX() + i, timeWord.getY(), timeWord.getBitAt(i));

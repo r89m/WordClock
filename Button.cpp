@@ -7,12 +7,6 @@
 
 #include "Button.h"
 
-#if (ARDUINO >= 100)
-#include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
-
 void Button::_button_pressed(){
 	
 	// Set the button pressed state to true
@@ -23,7 +17,7 @@ void Button::_button_pressed(){
 	
 	// Fire the onPress callback if one has been specified
 	if(_on_press_callback){
-		_on_press_callback(this);
+		_on_press_callback(*this);
 	}
 	
 	// Reset all hold callbacks
@@ -39,13 +33,13 @@ void Button::_button_released(){
 	
 	// Fire the onRelease callback if one has been specified
 	if(_on_release_callback){
-		_on_release_callback(this, _button_time_elapsed());
+		_on_release_callback(*this, _button_time_elapsed());
 	}
 	
 	// Search for the most appropriate onRelease callback with wait
 	// Iterate from the end of the array, as we want the first callback who's "wait" has elapsed
 	for(uint8_t i = _on_release_callbacks_count - 1; i >= 0; i--){
-		if(_on_release_callbacks[i]->performCallbackIfTime(this, _button_time_elapsed())){
+		if(_on_release_callbacks[i]->performCallbackIfTime(*this, _button_time_elapsed())){
 			break;
 		}
 	}
@@ -55,7 +49,7 @@ void Button::_button_held(){
 	
 	// Search for the most appropriate onHold callback
 	for(uint8_t i = 0; i < _on_hold_callbacks_count; i++){
-		_on_hold_callbacks[i]->performCallbackIfTime(this, _button_time_elapsed());
+		_on_hold_callbacks[i]->performCallbackIfTime(*this, _button_time_elapsed());
 	}
 }
 
@@ -157,7 +151,7 @@ boolean Button::isPressed(){
 	return _is_pressed;
 }
 
-boolean ButtonDelayedCallback::performCallbackIfTime(Button* button, uint16_t elapsed_time){
+boolean ButtonDelayedCallback::performCallbackIfTime(Button& button, uint16_t elapsed_time){
 	
 	if(_should_perform_callback(elapsed_time)){
 		_callback(button, elapsed_time);

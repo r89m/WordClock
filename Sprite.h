@@ -17,12 +17,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Sprite_h
-#define Sprite_h
+#ifndef SPRITE_H_
+#define SPRITE_H_
 
-#include <inttypes.h>
-
-#include <binary.h>
+#if (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
 
 class Sprite
 {

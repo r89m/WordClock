@@ -31,6 +31,11 @@ void PushButton::init(uint8_t pin, boolean enable_pullup){
 	bouncer.interval(5);
 }
 
+void PushButton::configureButton(PushButtonConfigurationCallback configurationCallback){
+	
+	configurationCallback(bouncer);	
+}
+
 boolean PushButton::_update_button_state(){
 	
 	// Update the button

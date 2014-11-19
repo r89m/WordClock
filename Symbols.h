@@ -1,8 +1,8 @@
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
 
-#include <Sprite/Sprite.h>
-#include "TimeWord.h"
+#include "Sprite.h"
+#include "ClockWord.h"
 
 const Sprite TIME_INTRO = Sprite(5, 1,		B11011);
 const Sprite NUMBER_NOUGHT = Sprite(5, 7,		B01110,
@@ -88,7 +88,7 @@ const Sprite NUMBER_NINE = Sprite(5, 7,		B01110,
 const Sprite SYMBOL_DEGREES = Sprite(2, 2,	B11,
 										B11);
 										
-const TimeWord TIME_WORD_ITIS = TimeWord(0, 0, 5, B11011);
-const TimeWord TIME_WORD_MINUTE_ONE = TimeWord(0, 5, 3);
+const ClockWord TIME_WORD_ITIS = ClockWord(0, 0, 5, B11011);
+const ClockWord TIME_WORD_MINUTE_ONE = ClockWord(0, 5, 3);
 
 #endif // SYMBOLS_H

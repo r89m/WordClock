@@ -22,16 +22,16 @@ class ButtonReleaseCallback;
 class ButtonHoldCallback;
 
 // Define callback types
-typedef void (*ButtonOnPressCallback)(Button*);
-typedef void (*ButtonOnEventCallback)(Button*, uint16_t);
+typedef void (*ButtonOnPressCallback)(Button&);
+typedef void (*ButtonOnEventCallback)(Button&, uint16_t);
 
 class Button{
 	
 	private:
 		uint32_t _button_pressed_timestamp;
 		boolean _is_pressed;
-		void (*_on_press_callback)(Button*);
-		void (*_on_release_callback)(Button*, uint16_t);
+		void (*_on_press_callback)(Button&);
+		void (*_on_release_callback)(Button&, uint16_t);
 		ButtonReleaseCallback **_on_release_callbacks;
 		ButtonHoldCallback **_on_hold_callbacks;
 		uint8_t _on_release_callbacks_count = 0;
@@ -53,6 +53,7 @@ class Button{
 		void onRelease(uint16_t, uint16_t, ButtonOnEventCallback);
 		void onHold(uint16_t, ButtonOnEventCallback);
 		void onHold(uint16_t, uint16_t, ButtonOnEventCallback);
+		
 		void update();
 		boolean isPressed();
 };
@@ -61,11 +62,11 @@ class ButtonDelayedCallback{
 	
 	protected:
 		uint16_t _delay;
-		void (*_callback)(Button*,uint16_t);
+		void (*_callback)(Button&,uint16_t);
 		virtual boolean _should_perform_callback(uint16_t)=0;
 		
 	public:
-		boolean performCallbackIfTime(Button*, uint16_t);
+		boolean performCallbackIfTime(Button&, uint16_t);
 };
 
 class ButtonReleaseCallback : public ButtonDelayedCallback{

@@ -12,6 +12,9 @@
 #include "Button.h";
 #include "Bounce2.h"
 
+// Define button configuration callback
+typedef void (*PushButtonConfigurationCallback)(Bounce&);
+
 class PushButton : public Button {
 	
 	private:
@@ -25,10 +28,7 @@ class PushButton : public Button {
 		PushButton(uint8_t);
 		PushButton(uint8_t, boolean);
 	
+		void configureButton(PushButtonConfigurationCallback);
 };
-
-
-
-
 
 #endif /* PUSHBUTTON_H_ */
