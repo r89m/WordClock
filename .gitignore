@@ -6,6 +6,9 @@ Visual Micro/
 *.atsln
 *.atsuo
 
+*.sln
+*.vcxproj*
+
 # User-specific files
 *.suo
 *.user
