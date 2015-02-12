@@ -33,8 +33,8 @@
 #include "Sprite.h"
 #include "ClockWord.h"
 
-#define PIXEL_ON HIGH
-#define PIXEL_OFF LOW
+#define PIXEL_ON 0x01
+#define PIXEL_OFF 0x00
 
 class Matrix
 {
@@ -42,9 +42,10 @@ class Matrix
 	uint8_t* _buffer;
 	uint8_t _width;
 	uint8_t _height;
+	uint16_t _brightness;	// TLC5940 brightness ranges from 0 - 4095
 	uint32_t _multiplexLastTimestamp = 0;
-	uint8_t _multiplexPeriod = 50;
-	uint8_t _multiplexCurrentColumn = 0;
+	uint8_t _multiplexPeriod = 1;
+	uint8_t _multiplexCurrentIndex = 0;
 	boolean _flash_enabled;
 	uint16_t _flash_on_duration;
 	uint16_t _flash_off_duration;
@@ -60,10 +61,14 @@ class Matrix
 	void setBrightness(uint8_t);
 	
 	void flashOn();
+	void flashOn(uint16_t);
+	void flashOn(uint16_t, uint16_t);
 	void flashOff();
 	void setFlash(uint16_t);
 	void setFlash(uint16_t, uint16_t);
-	
+
+	uint8_t getPixel(uint8_t, uint8_t);
+	boolean isPixelOn(uint8_t, uint8_t);
 	void setPixels(uint8_t, uint8_t, uint8_t);
 	void setPixels(uint8_t, uint8_t, Sprite);
 	void setPixels(ClockWord);
