@@ -33,30 +33,40 @@
 #include "Sprite.h"
 #include "ClockWord.h"
 
-#define PIXEL_ON 0x01
-#define PIXEL_OFF 0x00
+#define PIXEL_ON true
+#define PIXEL_OFF false
+
+#define FLASH_LIT 1
+#define FLASH_UNLIT 2
+
+#define MATRIX_BUFFER_DATA_TYPE uint8_t
+#define MATRIX_BUFFER_DATA_TYPE_SIZE sizeof(MATRIX_BUFFER_DATA_TYPE)
+#define MATRIX_BUFFER_DATA_TYPE_SIZE_BITS 8 * MATRIX_BUFFER_DATA_TYPE_SIZE
 
 class Matrix
 {
 	private: 
-	uint8_t* _buffer;
+	MATRIX_BUFFER_DATA_TYPE* _buffer;
 	uint8_t _width;
 	uint8_t _height;
-	uint16_t _brightness;	// TLC5940 brightness ranges from 0 - 4095
-	uint32_t _multiplexLastTimestamp = 0;
-	uint8_t _multiplexPeriod = 1;
-	uint8_t _multiplexCurrentIndex = 0;
+  uint16_t _bufferSize;
+	uint8_t _brightness = 15;	// HT1632C Brightness ranges from 0 - 16
 	boolean _flash_enabled;
-	uint16_t _flash_on_duration;
-	uint16_t _flash_off_duration;
+  uint16_t _flash_on_duration;
+  uint16_t _flash_off_duration;
+  uint32_t _flash_last_timestamp;
+  uint8_t _flash_current_status;
+  boolean bufferHasNewData;
+  boolean displayHasNewBrightness;
 	
 	void buffer(uint8_t, uint8_t, uint8_t);
-	void updateDrivers();
+  void getPixelIndexAndBit(uint8_t, uint8_t, uint8_t&, uint8_t&);
 	
 	public: 
-	Matrix(uint8_t, uint8_t);
+	Matrix(uint8_t, uint8_t, uint16_t);
+  void init();
 	void clear();
-	void loop();
+	void update();
 	
 	void setBrightness(uint8_t);
 	
@@ -69,9 +79,11 @@ class Matrix
 
 	uint8_t getPixel(uint8_t, uint8_t);
 	boolean isPixelOn(uint8_t, uint8_t);
+	void setAllPixels(uint8_t);
 	void setPixels(uint8_t, uint8_t, uint8_t);
 	void setPixels(uint8_t, uint8_t, Sprite);
 	void setPixels(ClockWord);
+  void overwriteBuffer(uint8_t*);
 	
 };
 
