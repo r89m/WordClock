@@ -1,11 +1,11 @@
 #include <Timezone.h>
-#include <MPR121ProximityButton2.h>
+#include <MPR121Button.h>
 #include <RunningAverage.h>
-#include <HT1632.h>
+// #include <HT1632.h>
 #include <DS3232RTC.h>
 #include <TimeAlarms.h>
 #include <Adafruit_MPR121.h>
-#include <Sprite.h>
+// #include <Sprite.h>
 #include <binary.h>
 #include <PushButton.h>
 #include <Button.h>
@@ -93,13 +93,16 @@ Matrix display = Matrix(MATRIX_WIDTH, MATRIX_HEIGHT, MATRIX_BUFFER_SIZE);
 
 // Button Variables
 Adafruit_MPR121 TouchSensor = Adafruit_MPR121();
-MPR121ProximityButton2 mainButton = MPR121ProximityButton2(TouchSensor, 6);
+MPR121Button mainButton = MPR121Button(TouchSensor, 6);
 
 // Default mode is display word
 uint8_t CurrentMode = MODE_DISPLAY_WORD;
 
 // Store the time that the alarm will go off - default to disabled
 uint32_t alarmTime = 0;
+
+// RTC object
+DS3232RTC myRTC{};
 
 // Nightlight variables
 uint8_t NightlightBrightness = 0;
@@ -119,6 +122,8 @@ uint8_t TouchSensitivity_Touch;
 uint8_t TouchSensitivity_Release;
 
 // Settings timeout timer
+void configTimedout();
+void cancelConfigTimeout();
 #define CONFIG_TIMEOUT_SECS 15
 const AlarmID_t configTimer = Alarm.timerRepeat(CONFIG_TIMEOUT_SECS, configTimedout);
 
@@ -136,199 +141,20 @@ uint32_t brightnessChangedLastTimestamp = 0;
 
 uint32_t lastViewUpdateTimestamp = 0;
 
-void setup()
-{
-  // This baud rate must match that of the HC-06 module
-	Serial.begin(115200);
-  
-  Serial.println("Boot Start");
-  
-  // Prepare the touch sensor
-  if(!TouchSensor.begin(I2C_ADDR_TOUCH)){
-    Serial.println("Couldn't connect to touch sensor");
-  }    
-  
-	// Initialise the display
-	display.init();
-	
-	// Read the previous settings from EEPROM
-	// If the stored schema matches the current schema, use the stored values
-  // Disabled for now
-	if (EEPROM.read(ADDRESS_SCHEMA) == EEPROMSchemaVersion){
-		ClockBrightness_Min = EEPROM.read(ADDRESS_BRIGHTNESS_MIN);
-		ClockBrightness_Max = EEPROM.read(ADDRESS_BRIGHTNESS_MAX);
-		TouchSensitivity_Touch = EEPROM.read(ADDRESS_SENSITIVITY_TOUCH);
-		TouchSensitivity_Release = EEPROM.read(ADDRESS_SENSITIVITY_RELEASE);
-	}
-	// Otherwise, save the current EEPROM version and then use the default values
-	else {
-		EEPROM.write(ADDRESS_SCHEMA, EEPROMSchemaVersion);
-		ClockBrightness_Min = EEPROMDefaultsBrightnessMin;
-		ClockBrightness_Max = EEPROMDefaultsBrightnessMax;
-		TouchSensitivity_Touch = EEPROMDefaultsSensitivityTouch;
-		TouchSensitivity_Release = EEPROMDefaultsSensitivityRelease;
-	}
-	
-	_PRINTLN(TouchSensitivity_Touch);
-	_PRINTLN(TouchSensitivity_Release);
-  
-	ClockBrightness_Min = 0;
-	ClockBrightness_Max = 15;
-	
-	// Disable the config timeout
-	cancelConfigTimeout();
-	
-	//btn.onRelease(onValueChangeButtonPress);
-  mainButton.setThresholds(TouchSensitivity_Touch, TouchSensitivity_Release);
-	mainButton.onRelease(0, 500, onMainButtonPressed);
-	mainButton.onHold(1000, onMainButtonHeld);
-	
-	//btn2.onRelease(0, 500, onValueChangeButtonPress);
-	//btn3.onRelease(0, 500, onValueChangeButtonPress);
-	
-	//btn2.onHoldRepeat(1000, 500, onValueChangeButtonHold);
-	//btn3.onHoldRepeat(1000, 500, onValueChangeButtonHold);
+//
+// void onMainButtonPressed(Button& button, uint16_t duration);
+// void onMainButtonHeld(Button& button, uint16_t duration);
 
-	// Setup the time library
-	setSyncProvider(getCurrentTimeFromRTC);
-	
-  setCurrentMode(MODE_DEFAULT);
-  
-  _PRINTLN("Boot animation start");
-  
-  // Boot animation
-  for(int col=0; col<MATRIX_WIDTH; col++){
-    for(int row=0; row<MATRIX_HEIGHT; row++){
-      display.setPixels(col, row, PIXEL_ON);
-    }
-    display.update();
-    delay(100);
-    for(int row=0; row<MATRIX_HEIGHT; row++){
-      display.setPixels(col, row, PIXEL_OFF);
-    }
-    display.update();
-  }
-  
-  display.setAllPixels(PIXEL_ON);
-  display.update();
-  delay(500);
-  display.setAllPixels(PIXEL_OFF);
-  display.update();
-  
-  _PRINTLN("Boot complete");
-}
-
-void loop()
-{
-	// Update all the buttons -  do this at the beginning, as a pressed button may cause the CurrentMode to change
-  mainButton.update();
-	
-	// Check if the alarm time has arrived
-	Alarm.delay(0);
-	
-	// Check for anything from the serial port
-	if(serialSendComplete){
-    switch(serialCommandChar){
-      
-      case SERIAL_COMMAND_SETTIME:
-        serialProcessSetTime();
-        break;
-        
-      case SERIAL_COMMAND_SETMODE:
-        serialProcessMode();
-        break;
-      
-      case SERIAL_COMMAND_SETALARM:
-        serialProcessAlarm();
-        break;
-        
-      case SERIAL_COMMAND_DISMISSALARM:
-        serialProcessDismissAlarm();
-        break;
-        
-      case SERIAL_COMMAND_NIGHTLIGHTBRIGHTNESS:
-        serialProcessNightlight();
-        break;
-        
-      case SERIAL_COMMAND_CAPACITIVETHRESHOLD:
-        serialProcessCapacitiveThreshold();
-        break;
-        
-      case SERIAL_COMMAND_FRAME:
-        serialProcessFrame();
-        break;
-        
-      default:
-        _PRINTLN("Unrecognised command.");
-        break;
-    }      
-		
-    // Reset serial buffer variables
-    resetSerialCommand();
-	}
-	
-	// If we are on a brightness setting screen, update the brightness to reflect the setting
-	if (CurrentMode == MODE_SETUP_BRIGHTNESS_MIN || CurrentMode == MODE_SETUP_BRIGHTNESS_MAX){
-		display.setBrightness(ClockBrightness_Config);
-	} else if (CurrentMode == MODE_ALARM || CurrentMode == MODE_NIGHTLIGHT){
-		// Display brightness is set within the display methods for these modes, so do nothing here.
-	} else {
-    // Record ambient light level and add it to the running average
-    ambientBrightness.addValue(analogRead(PIN_LDR));
-    
-    // Only update the brightness if the mapped brightness has changed by more than +- 1 and more than a second has passed since the last update
-    uint8_t brightnessMapped = map(ambientBrightness.getAverage(), LDR_READING_VERYDARK, LDR_READING_VERYLIGHT, ClockBrightness_Min, ClockBrightness_Max);
-    
-    if (brightnessMapped > brightnessMappedPrevious + 1 || brightnessMapped < brightnessMappedPrevious - 1){
-      if(millis() - brightnessChangedLastTimestamp > 1000){
-		    // Otherwise, update brightness to reflect LDR reading - mapped between it's readings for light / dark and the min /max brightness settings
-		    display.setBrightness(brightnessMapped);
-        brightnessMappedPrevious = brightnessMapped;
-        brightnessChangedLastTimestamp = millis();
-		    //display.setBrightness(15);
-      }        
-    }      
-	}
-	
-	// Check whether we should be updating the view
-	if(shouldUpdateView()){		
-		// If we should, update the display for the given mode
-		switch(CurrentMode){
-		
-			case MODE_DISPLAY_WORD:
-				displayWordClock();
-				break;
-		
-			case MODE_DISPLAY_LIVETIME:
-				displayLiveTime();
-				break;
-				
-			case MODE_DISPLAY_DATE:
-				displayDate();
-				break;
-				
-			case MODE_DISPLAY_SECONDS:
-				displaySeconds();
-				break;
-				
-			case MODE_ALARM:
-				displayAlarm();
-				break;
-				
-			case MODE_NIGHTLIGHT:
-				displayNightlight();
-				break;
-				
-			case MODE_SETUP_BRIGHTNESS_MAX:
-			case MODE_SETUP_BRIGHTNESS_MIN:
-				displayBrightnessSettings();
-				break;
-		}
-	}
-
-	// Update the display;
-	display.update();
-}
+// Forward declarations
+uint8_t roundMinutesToNearestFive(uint8_t currentMinute, uint8_t currentSecond);
+void displayBuildDateSlash(Matrix &display, uint8_t x, uint8_t y);
+void displayBuildBrightnessBar(Matrix &display, uint8_t x, uint8_t y);
+void setCurrentMode(uint8_t newMode);
+void cycleMode();
+void saveNewValue();
+void setCurrentTimeUTC(uint32_t newUTCTime);
+void alarmStartBuildUp();
+void saveToEEPROM();
 
 void displayWordClock(){
 	
@@ -502,7 +328,7 @@ void displayAlarm(){
 	int16_t alarmDelta = alarmTime - currentSeconds;
 	
 	// Build up the brightness of the display as we get closer to the alarm time
-	display.setBrightness(map(max(0, alarmDelta), 0, ALARM_BRIGHTNESS_RAMP_PERIOD_MINS * SECONDS_IN_MINUTE, 15, ClockBrightness_Min));
+	// display.setBrightness(map(max(0, alarmDelta), 0, ALARM_BRIGHTNESS_RAMP_PERIOD_MINS * SECONDS_IN_MINUTE, 15, ClockBrightness_Min));
 	
 	if(alarmDelta < ALARM_MAX_DURATION_MINS * SECONDS_IN_MINUTE * -1){
 		// Cancel the alarm if it has been going on for too long
@@ -806,7 +632,7 @@ void serialProcessCapacitiveThreshold(){
   EEPROM.write(ADDRESS_SENSITIVITY_RELEASE, releaseTheshold);
   
   // Set the sensitivity of the touch button  
-  mainButton.setThresholds(touchThreshold, releaseTheshold);
+  // mainButton.setThresholds(touchThreshold, releaseTheshold);
   
   _PRINTLN("New sensitivity set.");
 }
@@ -854,12 +680,12 @@ time_t getCurrentTimeFromRTC(){
 	
 	// Get the current time from the RTC and then add the DST offset
   _PRINTLN("Getting time fromRTC...");
-  return RTC.get();
+  return myRTC.get();
 }
 
 void setCurrentTimeUTC(uint32_t newUTCTime){
 	
-	RTC.set(newUTCTime); // Set the time on the RTC - UTC
+	myRTC.set(newUTCTime); // Set the time on the RTC - UTC
 	setTime(newUTCTime);
 }
 
@@ -915,4 +741,198 @@ void serialEvent(){
       serialBuffer[serialBufferIndex++] = nextChar;
     }
   }
+}
+
+void setup()
+{
+  // This baud rate must match that of the HC-06 module
+	Serial.begin(115200);
+
+  Serial.println("Boot Start");
+
+  // Prepare the touch sensor
+  if(!TouchSensor.begin(I2C_ADDR_TOUCH)){
+    Serial.println("Couldn't connect to touch sensor");
+  }
+
+	// Initialise the display
+	display.init();
+
+	// Read the previous settings from EEPROM
+	// If the stored schema matches the current schema, use the stored values
+  // Disabled for now
+	if (EEPROM.read(ADDRESS_SCHEMA) == EEPROMSchemaVersion){
+		ClockBrightness_Min = EEPROM.read(ADDRESS_BRIGHTNESS_MIN);
+		ClockBrightness_Max = EEPROM.read(ADDRESS_BRIGHTNESS_MAX);
+		TouchSensitivity_Touch = EEPROM.read(ADDRESS_SENSITIVITY_TOUCH);
+		TouchSensitivity_Release = EEPROM.read(ADDRESS_SENSITIVITY_RELEASE);
+	}
+	// Otherwise, save the current EEPROM version and then use the default values
+	else {
+		EEPROM.write(ADDRESS_SCHEMA, EEPROMSchemaVersion);
+		ClockBrightness_Min = EEPROMDefaultsBrightnessMin;
+		ClockBrightness_Max = EEPROMDefaultsBrightnessMax;
+		TouchSensitivity_Touch = EEPROMDefaultsSensitivityTouch;
+		TouchSensitivity_Release = EEPROMDefaultsSensitivityRelease;
+	}
+
+	_PRINTLN(TouchSensitivity_Touch);
+	_PRINTLN(TouchSensitivity_Release);
+
+	ClockBrightness_Min = 0;
+	ClockBrightness_Max = 15;
+
+	// Disable the config timeout
+	cancelConfigTimeout();
+
+	//btn.onRelease(onValueChangeButtonPress);
+  // mainButton.setThresholds(TouchSensitivity_Touch, TouchSensitivity_Release);
+	mainButton.onRelease(0, 500, onMainButtonPressed);
+	mainButton.onHold(1000, onMainButtonHeld);
+
+	//btn2.onRelease(0, 500, onValueChangeButtonPress);
+	//btn3.onRelease(0, 500, onValueChangeButtonPress);
+
+	//btn2.onHoldRepeat(1000, 500, onValueChangeButtonHold);
+	//btn3.onHoldRepeat(1000, 500, onValueChangeButtonHold);
+
+	// Setup the time library
+	setSyncProvider(getCurrentTimeFromRTC);
+
+  setCurrentMode(MODE_DEFAULT);
+
+  _PRINTLN("Boot animation start");
+
+  // Boot animation
+  for(int col=0; col<MATRIX_WIDTH; col++){
+    for(int row=0; row<MATRIX_HEIGHT; row++){
+      display.setPixels(col, row, PIXEL_ON);
+    }
+    display.update();
+    delay(100);
+    for(int row=0; row<MATRIX_HEIGHT; row++){
+      display.setPixels(col, row, PIXEL_OFF);
+    }
+    display.update();
+  }
+
+  display.setAllPixels(PIXEL_ON);
+  display.update();
+  delay(500);
+  display.setAllPixels(PIXEL_OFF);
+  display.update();
+
+  _PRINTLN("Boot complete");
+}
+
+void loop()
+{
+	// Update all the buttons -  do this at the beginning, as a pressed button may cause the CurrentMode to change
+  mainButton.update();
+
+	// Check if the alarm time has arrived
+	Alarm.delay(0);
+
+	// Check for anything from the serial port
+	if(serialSendComplete){
+    switch(serialCommandChar){
+
+      case SERIAL_COMMAND_SETTIME:
+        serialProcessSetTime();
+        break;
+
+      case SERIAL_COMMAND_SETMODE:
+        serialProcessMode();
+        break;
+
+      case SERIAL_COMMAND_SETALARM:
+        serialProcessAlarm();
+        break;
+
+      case SERIAL_COMMAND_DISMISSALARM:
+        serialProcessDismissAlarm();
+        break;
+
+      case SERIAL_COMMAND_NIGHTLIGHTBRIGHTNESS:
+        serialProcessNightlight();
+        break;
+
+      case SERIAL_COMMAND_CAPACITIVETHRESHOLD:
+        serialProcessCapacitiveThreshold();
+        break;
+
+      case SERIAL_COMMAND_FRAME:
+        serialProcessFrame();
+        break;
+
+      default:
+        _PRINTLN("Unrecognised command.");
+        break;
+    }
+
+    // Reset serial buffer variables
+    resetSerialCommand();
+	}
+
+	// If we are on a brightness setting screen, update the brightness to reflect the setting
+	if (CurrentMode == MODE_SETUP_BRIGHTNESS_MIN || CurrentMode == MODE_SETUP_BRIGHTNESS_MAX){
+		display.setBrightness(ClockBrightness_Config);
+	} else if (CurrentMode == MODE_ALARM || CurrentMode == MODE_NIGHTLIGHT){
+		// Display brightness is set within the display methods for these modes, so do nothing here.
+	} else {
+    // Record ambient light level and add it to the running average
+    ambientBrightness.addValue(analogRead(PIN_LDR));
+
+    // Only update the brightness if the mapped brightness has changed by more than +- 1 and more than a second has passed since the last update
+    uint8_t brightnessMapped = map(ambientBrightness.getAverage(), LDR_READING_VERYDARK, LDR_READING_VERYLIGHT, ClockBrightness_Min, ClockBrightness_Max);
+
+    if (brightnessMapped > brightnessMappedPrevious + 1 || brightnessMapped < brightnessMappedPrevious - 1){
+      if(millis() - brightnessChangedLastTimestamp > 1000){
+		    // Otherwise, update brightness to reflect LDR reading - mapped between it's readings for light / dark and the min /max brightness settings
+		    display.setBrightness(brightnessMapped);
+        brightnessMappedPrevious = brightnessMapped;
+        brightnessChangedLastTimestamp = millis();
+		    //display.setBrightness(15);
+      }
+    }
+	}
+
+	// Check whether we should be updating the view
+	if(shouldUpdateView()){
+		// If we should, update the display for the given mode
+		switch(CurrentMode){
+
+			case MODE_DISPLAY_WORD:
+				displayWordClock();
+				break;
+
+			case MODE_DISPLAY_LIVETIME:
+				displayLiveTime();
+				break;
+
+			case MODE_DISPLAY_DATE:
+				displayDate();
+				break;
+
+			case MODE_DISPLAY_SECONDS:
+				displaySeconds();
+				break;
+
+			case MODE_ALARM:
+				displayAlarm();
+				break;
+
+			case MODE_NIGHTLIGHT:
+				displayNightlight();
+				break;
+
+			case MODE_SETUP_BRIGHTNESS_MAX:
+			case MODE_SETUP_BRIGHTNESS_MIN:
+				displayBrightnessSettings();
+				break;
+		}
+	}
+
+	// Update the display;
+	display.update();
 }

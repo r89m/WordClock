@@ -21,7 +21,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-//#define OUTPUT_TO_SERIAL
+// #define OUTPUT_TO_SERIAL
 
 #include "Matrix.h"
 #include <Time.h>
@@ -30,10 +30,10 @@
 uint32_t lastLoopTimestamp = 0;
 uint32_t serialOutputLastTime = 0;
 #if defined(OUTPUT_TO_SERIAL)
-  uint32_t serialOutputLastTime = 0;
+  // uint32_t serialOutputLastTime = 0;
 #else
-  #include <HT1632.h>
-  HT1632 MatrixDriver = HT1632(2, 3, 4);
+  #include <Adafruit_HT1632.h>
+  Adafruit_HT1632 MatrixDriver = Adafruit_HT1632(2, 3, 4);
 #endif
 
 Matrix::Matrix(uint8_t width, uint8_t height, uint16_t bufferSize){
@@ -46,7 +46,7 @@ Matrix::Matrix(uint8_t width, uint8_t height, uint16_t bufferSize){
 
 void Matrix::init(){   
   #if !defined(OUTPUT_TO_SERIAL)
-    MatrixDriver.begin(HT1632_COMMON_16NMOS);
+    MatrixDriver.begin(ADA_HT1632_COMMON_16NMOS);
   #endif
 }
 
