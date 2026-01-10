@@ -43,50 +43,46 @@
 #define MATRIX_BUFFER_DATA_TYPE_SIZE sizeof(MATRIX_BUFFER_DATA_TYPE)
 #define MATRIX_BUFFER_DATA_TYPE_SIZE_BITS 8 * MATRIX_BUFFER_DATA_TYPE_SIZE
 
-class Matrix
-{
-	private: 
-	MATRIX_BUFFER_DATA_TYPE* _buffer;
-	uint8_t _width;
-	uint8_t _height;
-  uint16_t _bufferSize;
-	uint8_t _brightness = 15;	// HT1632C Brightness ranges from 0 - 16
-	boolean _flash_enabled;
-  uint16_t _flash_on_duration;
-  uint16_t _flash_off_duration;
-  uint32_t _flash_last_timestamp;
-  uint8_t _flash_current_status;
-  boolean bufferHasNewData;
-  boolean displayHasNewBrightness;
-	
-	void buffer(uint8_t, uint8_t, uint8_t);
-  void getPixelIndexAndBit(uint8_t, uint8_t, uint8_t&, uint8_t&);
-	
-	public: 
-	Matrix(uint8_t, uint8_t, uint16_t);
-  void init();
-	void clear();
-	void update();
-	
-	void setBrightness(uint8_t);
-	
-	void flashOn();
-	void flashOn(uint16_t);
-	void flashOn(uint16_t, uint16_t);
-	void flashOff();
-	void setFlash(uint16_t);
-	void setFlash(uint16_t, uint16_t);
+class Matrix {
+    private:
+    MATRIX_BUFFER_DATA_TYPE *_buffer;
+    uint8_t _width;
+    uint8_t _height;
+    uint16_t _bufferSize;
+    uint8_t _brightness = 15; // HT1632C Brightness ranges from 0 - 16
+    boolean _flash_enabled;
+    uint16_t _flash_on_duration;
+    uint16_t _flash_off_duration;
+    uint32_t _flash_last_timestamp;
+    uint8_t _flash_current_status;
+    boolean bufferHasNewData;
+    boolean displayHasNewBrightness;
 
-	uint8_t getPixel(uint8_t, uint8_t);
-	boolean isPixelOn(uint8_t, uint8_t);
-	void setAllPixels(uint8_t);
-	void setPixels(uint8_t, uint8_t, uint8_t);
-	void setPixels(uint8_t, uint8_t, Sprite);
-	void setPixels(ClockWord);
-  void overwriteBuffer(uint8_t*);
-	
+    void buffer(uint8_t, uint8_t, uint8_t);
+    void getPixelIndexAndBit(uint8_t, uint8_t, uint8_t &, uint8_t &);
+
+    public:
+    Matrix(uint8_t, uint8_t, uint16_t);
+    void init();
+    void clear();
+    void update();
+
+    void setBrightness(uint8_t);
+
+    void flashOn();
+    void flashOn(uint16_t);
+    void flashOn(uint16_t, uint16_t);
+    void flashOff();
+    void setFlash(uint16_t);
+    void setFlash(uint16_t, uint16_t);
+
+    uint8_t getPixel(uint8_t, uint8_t);
+    boolean isPixelOn(uint8_t, uint8_t);
+    void setAllPixels(uint8_t);
+    void setPixels(uint8_t, uint8_t, uint8_t);
+    void setPixels(uint8_t, uint8_t, Sprite);
+    void setPixels(ClockWord);
+    void overwriteBuffer(uint8_t *);
 };
-
-
 
 #endif /* MATRIX_H_ */
