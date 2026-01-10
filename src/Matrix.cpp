@@ -24,7 +24,6 @@
 // #define OUTPUT_TO_SERIAL
 
 #include "Matrix.h"
-#include <Time.h>
 #include <Timezone.h>
 
 uint32_t lastLoopTimestamp = 0;

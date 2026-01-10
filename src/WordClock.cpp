@@ -1,19 +1,12 @@
 #include <Timezone.h>
 #include <MPR121Button.h>
 #include <RunningAverage.h>
-// #include <HT1632.h>
 #include <DS3232RTC.h>
 #include <TimeAlarms.h>
 #include <Adafruit_MPR121.h>
-// #include <Sprite.h>
 #include <binary.h>
-#include <PushButton.h>
 #include <Button.h>
-#include <ButtonEventCallback.h>
 #include <EEPROM.h>
-#include <Bounce2.h>
-#include <Time.h>
-#include <Wire.h>
 
 #include "Symbols.h"
 #include "Matrix.h"
