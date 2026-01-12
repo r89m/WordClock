@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Get the repository root directory
+REPO_DIR="$(dirname "$(readlink -f "$0")")"
+
+CHECK_DIR="${REPO_DIR}/src"
+
+# Get show_or_fix parameter, or default to show
+SHOW_OR_FIX="${1:-show}"
+
+if [ "$SHOW_OR_FIX" = "fix" ]; then
+    EXTRA_ARGS="-i -style=file"
+else
+    EXTRA_ARGS="--dry-run --Werror"
+fi
+
+echo "Running clang-format on ${CHECK_DIR}"
+
+find "${CHECK_DIR}" -type f \( -iname '*.h' -o -iname '*.cpp' \)  | xargs uvx clang-format==21.1.8 ${EXTRA_ARGS}

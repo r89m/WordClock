@@ -24,9 +24,8 @@ Sprite.cpp - 2D sprite buffers library for Arduino & Wiring
 
 #include "binary.h"
 
-class Sprite
-{
-private:
+class Sprite {
+    private:
     uint8_t _width;
     uint8_t _height;
     uint8_t _depth;
@@ -36,7 +35,8 @@ private:
     uint8_t *_buffer;
 
     void init(uint8_t width, uint8_t height);
-public:
+
+    public:
     Sprite(uint8_t width, uint8_t height);
     Sprite(uint8_t width, uint8_t height, uint8_t row, ...);
     uint8_t width() const;
