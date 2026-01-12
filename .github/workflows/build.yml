@@ -22,3 +22,19 @@ jobs:
 
       - name: Build PlatformIO Project
         run: pio run
+
+  clang-format:
+    name: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          # Install a specific version of uv.
+          version: "0.9.23"
+
+      - name: Run clang-format
+        run: ./run_clangformat
