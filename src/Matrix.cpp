@@ -21,10 +21,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// #define OUTPUT_TO_SERIAL
+#define OUTPUT_TO_SERIAL
 
 #include "Matrix.h"
-#include <Timezone.h>
 
 uint32_t lastLoopTimestamp = 0;
 uint32_t serialOutputLastTime = 0;
@@ -104,38 +103,27 @@ void Matrix::update(){
       TimeChangeRule londonDST = {"DST", Last, Sun, Mar, 1, 60};
       TimeChangeRule londonStandard = {"GMT", Last, Sun, Oct, 2, 0};
       Timezone London(londonDST, londonStandard);
-			
+
 			// Record the current time
 			serialOutputLastTime = millis();
-      
-	     time_t timeNow = London.toLocal(now());      
-      
-      Serial.print(day(timeNow));
-      Serial.print("/");
-      Serial.print(month(timeNow));
-      Serial.print("/");
-      Serial.print(year(timeNow));
-      Serial.print(" - ");
-      Serial.print(hour(timeNow));
-      Serial.print(":");
-      Serial.print(minute(timeNow));
-      Serial.print(":");
-      Serial.print(second(timeNow));
-      Serial.println();
+
+	     time_t timeNow = London.toLocal(now());
       */
-      
-		  /*
+
+
+
 			Serial.println("==============");
 			// Draw the current view
 			for(uint8_t row = 0; row < _height; row++){
 				Serial.print("|");
 				for(uint8_t col = 0; col < _width; col++){
-					Serial.print(isPixelOn(col, row) ? 'X' : ' ');	
+					Serial.print(isPixelOn(col, row) ? 'X' : ' ');
 				}
 				Serial.println('|');
 			}
-			Serial.println("==============");		
-      */
+			Serial.println("==============");
+
+			serialOutputLastTime = millis();
       
 		}
 	#else
