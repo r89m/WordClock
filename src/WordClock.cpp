@@ -395,6 +395,8 @@ void setup() {
 }
 
 void loop() {
+    mainButton.update();
+
     ntp.update();
 
     // Check whether we should be updating the view
