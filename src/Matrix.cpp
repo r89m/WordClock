@@ -21,7 +21,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#define OUTPUT_TO_SERIAL
+// #define OUTPUT_TO_SERIAL
 
 #include "Matrix.h"
 
@@ -31,7 +31,7 @@ uint32_t serialOutputLastTime = 0;
 // uint32_t serialOutputLastTime = 0;
 #else
 #include <Adafruit_HT1632.h>
-Adafruit_HT1632 MatrixDriver = Adafruit_HT1632(2, 3, 4);
+Adafruit_HT1632 MatrixDriver = Adafruit_HT1632(D5, D6, D7);
 #endif
 
 Matrix::Matrix(uint8_t width, uint8_t height, uint16_t bufferSize) {
