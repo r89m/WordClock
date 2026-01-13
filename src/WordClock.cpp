@@ -1,3 +1,5 @@
+#include "HT1632Matrix.h"
+
 #include <MPR121Button.h>
 #include <Adafruit_MPR121.h>
 #include <binary.h>
@@ -12,6 +14,7 @@
 #include <WiFiUdp.h>
 
 #include "NTP.h"
+#include "PrintMatrix.h"
 
 #define _PRINT(x) Serial.print(x)
 #define _PRINTLN(x) Serial.println(x)
@@ -60,7 +63,9 @@ const uint8_t EEPROMDefaultsBrightnessMax = 15;
 const uint8_t EEPROMDefaultsSensitivityTouch = 40;
 const uint8_t EEPROMDefaultsSensitivityRelease = 5;
 
-Matrix display = Matrix(MATRIX_WIDTH, MATRIX_HEIGHT, MATRIX_BUFFER_SIZE);
+HT1632Matrix displayHT1632{MATRIX_WIDTH, MATRIX_HEIGHT, MATRIX_BUFFER_SIZE};
+PrintMatrix displayPrint{MATRIX_WIDTH, MATRIX_HEIGHT, MATRIX_BUFFER_SIZE};
+MatrixCollection display{{&displayHT1632, &displayPrint}};
 
 // Button Variables
 Adafruit_MPR121 TouchSensor = Adafruit_MPR121();
@@ -82,7 +87,7 @@ AsyncWebServer server(80);
 
 // Forward declarations
 uint8_t roundMinutesToNearestFive(uint8_t currentMinute, uint8_t currentSecond);
-void displayBuildDateSlash(Matrix &display, uint8_t x, uint8_t y);
+void displayBuildDateSlash(IMatrix &display, uint8_t x, uint8_t y);
 void displayBuildBrightnessBar(Matrix &display, uint8_t x, uint8_t y);
 void setCurrentMode(uint8_t newMode);
 void cycleMode();
@@ -309,7 +314,7 @@ void setCurrentMode(uint8_t newMode) {
     display.flashOff();
 }
 
-void displayBuildDateSlash(Matrix &display, uint8_t x, uint8_t y) {
+void displayBuildDateSlash(IMatrix &display, uint8_t x, uint8_t y) {
 
     // Build the date slash - 6 pixels diagonally
     for (uint8_t i = 0; i < 6; i++) {
@@ -354,7 +359,7 @@ void setup() {
     }
 
     // Initialise the display
-    display.init();
+    display.begin();
 
     mainButton.onRelease(0, 500, onMainButtonPressed);
 

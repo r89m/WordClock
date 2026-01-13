@@ -43,46 +43,144 @@
 #define MATRIX_BUFFER_DATA_TYPE_SIZE sizeof(MATRIX_BUFFER_DATA_TYPE)
 #define MATRIX_BUFFER_DATA_TYPE_SIZE_BITS 8 * MATRIX_BUFFER_DATA_TYPE_SIZE
 
-class Matrix {
+class IMatrix {
+    public:
+    virtual ~IMatrix() = default;
+
+    virtual void begin() = 0;
+
+    virtual void clear() = 0;
+
+    virtual void setAllPixels(uint8_t) = 0;
+    virtual void setPixels(uint8_t, uint8_t, uint8_t) = 0;
+    virtual void setPixels(uint8_t, uint8_t, Sprite) = 0;
+    virtual void setPixels(ClockWord) = 0;
+    virtual void overwriteBuffer(uint8_t *) = 0;
+
+    virtual void setBrightness(uint8_t brightness) = 0;
+
+    virtual void flashOff() = 0;
+
+    virtual void update() = 0;
+};
+
+class MatrixCollection : public IMatrix {
+    public:
+    MatrixCollection(const std::vector<IMatrix *> &matrices) : matrices(matrices) {};
+
+    void begin() override {
+        for (const auto matrix : matrices) {
+            matrix->begin();
+        }
+    }
+
+    void clear() override {
+        for (const auto matrix : matrices) {
+            matrix->clear();
+        }
+    }
+
+    void update() override {
+        for (const auto matrix : matrices) {
+            matrix->update();
+        }
+    }
+
+    void setAllPixels(uint8_t pixelValue) override {
+        for (const auto matrix : matrices) {
+            matrix->setAllPixels(pixelValue);
+        }
+    }
+
+    void setPixels(uint8_t x, uint8_t y, uint8_t value) override {
+        for (const auto matrix : matrices) {
+            matrix->setPixels(x, y, value);
+        }
+    }
+
+    void setPixels(uint8_t x, uint8_t y, Sprite sprite) override {
+        for (const auto matrix : matrices) {
+            matrix->setPixels(x, y, sprite);
+        }
+    }
+    void setPixels(ClockWord clockWord) override {
+        for (const auto matrix : matrices) {
+            matrix->setPixels(clockWord);
+        }
+    }
+
+    void overwriteBuffer(uint8_t *buffer) override {
+        for (const auto matrix : matrices) {
+            matrix->overwriteBuffer(buffer);
+        }
+    }
+
+    void setBrightness(uint8_t brightness) override {
+        for (const auto matrix : matrices) {
+            matrix->setBrightness(brightness);
+        }
+    }
+
+    void flashOff() override {
+        for (const auto matrix : matrices) {
+            matrix->flashOff();
+        }
+    }
+
+    private:
+    std::vector<IMatrix *> matrices;
+};
+
+class Matrix : public IMatrix {
     private:
     MATRIX_BUFFER_DATA_TYPE *_buffer;
-    uint8_t _width;
-    uint8_t _height;
     uint16_t _bufferSize;
-    uint8_t _brightness = 15; // HT1632C Brightness ranges from 0 - 16
     boolean _flash_enabled;
     uint16_t _flash_on_duration;
     uint16_t _flash_off_duration;
     uint32_t _flash_last_timestamp;
     uint8_t _flash_current_status;
     boolean bufferHasNewData;
-    boolean displayHasNewBrightness;
 
     void buffer(uint8_t, uint8_t, uint8_t);
     void getPixelIndexAndBit(uint8_t, uint8_t, uint8_t &, uint8_t &);
 
+    protected:
+    uint8_t _width;
+    uint8_t _height;
+    uint8_t _brightness = 15; // HT1632C Brightness ranges from 0 - 16
+    boolean displayHasNewBrightness;
+
     public:
     Matrix(uint8_t, uint8_t, uint16_t);
-    void init();
-    void clear();
-    void update();
 
-    void setBrightness(uint8_t);
+    void begin() override {
+        // Do nothing by default
+    };
+    void clear() override;
+    void update() override;
+
+    virtual void handlePixel(uint8_t x, uint8_t y) = 0;
+
+    virtual void writeScreen() = 0;
+    virtual void clearScreen() = 0;
+
+    void setBrightness(uint8_t) override;
 
     void flashOn();
     void flashOn(uint16_t);
     void flashOn(uint16_t, uint16_t);
-    void flashOff();
+    void flashOff() override;
     void setFlash(uint16_t);
     void setFlash(uint16_t, uint16_t);
 
     uint8_t getPixel(uint8_t, uint8_t);
     boolean isPixelOn(uint8_t, uint8_t);
-    void setAllPixels(uint8_t);
-    void setPixels(uint8_t, uint8_t, uint8_t);
-    void setPixels(uint8_t, uint8_t, Sprite);
-    void setPixels(ClockWord);
-    void overwriteBuffer(uint8_t *);
+    void setAllPixels(uint8_t) override;
+    void setPixels(uint8_t, uint8_t, uint8_t) override;
+    void setPixels(uint8_t, uint8_t, Sprite) override;
+    void setPixels(ClockWord) override;
+    void overwriteBuffer(uint8_t *) override;
 };
 
 #endif /* MATRIX_H_ */
