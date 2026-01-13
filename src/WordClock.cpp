@@ -78,8 +78,8 @@ WiFiUDP wifiUdp;
 NTP ntp(wifiUdp);
 
 // Touch Button Sensitivity
-uint8_t TouchSensitivity_Touch;
-uint8_t TouchSensitivity_Release;
+uint8_t TouchSensitivity_Touch = EEPROMDefaultsSensitivityTouch;
+uint8_t TouchSensitivity_Release = EEPROMDefaultsSensitivityRelease;
 
 uint32_t lastViewUpdateTimestamp = 0;
 
