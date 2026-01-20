@@ -2,7 +2,6 @@
 
 void PrintMatrix::writeScreen() {
     // Check whether the display needs to be sent to the serial port (do it once per second)
-    printf("millis = %lu; serialOutputLastTime = %u; diff = %lu\n", millis(), serialOutputLastTime, millis() - serialOutputLastTime);
     if (millis() - serialOutputLastTime > 1000) {
         printer.println("================");
         // Draw the current view

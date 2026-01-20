@@ -86,7 +86,7 @@ class TestModeDisplayFixture : public testing::TestWithParam<TestDisplayTimes> {
         ON_CALL(mockTimeSource, minutes).WillByDefault(Return(param.minutes.value_or(0)));
         ON_CALL(mockTimeSource, seconds).WillByDefault(Return(param.seconds.value_or(0)));
 
-        When(Method(ArduinoFake(), millis)).Return(100, 10000, 10000, 10000);
+        When(Method(ArduinoFake(), millis)).Return(100, 10000, 10000, 10000, 10000);
 
         const std::string &paramName = TestDisplayTimes::ParamToString(param);
 
@@ -97,6 +97,7 @@ class TestModeDisplayFixture : public testing::TestWithParam<TestDisplayTimes> {
 
         wordClock.setCurrentMode(displayMode);
         wordClock.update();
+        wordClock.update(); // Call twice to make sure WordClock is drawn
         display.update();
 
         std::string displayDirNameNormalised = "";
@@ -173,7 +174,6 @@ auto getSecondsTestParams() {
 auto getDatesTestParams() {
     std::vector<TestDisplayTimes> testDisplayTimes{};
     for (uint8_t i = 1; i <= 12; i++) {
-        // TODO: Make support dates. Can we use named property init and std::optional
         testDisplayTimes.push_back({i, i * 2});
     }
 

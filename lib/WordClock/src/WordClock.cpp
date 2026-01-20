@@ -39,7 +39,6 @@ void WordClock::setCurrentMode(uint8_t newMode) {
 }
 
 void WordClock::displayWordClock() {
-    printf("update\n");
     uint8_t nowHour = timeSource.hours();
     uint8_t nowMinute = timeSource.minutes();
     uint8_t nowSecond = timeSource.seconds();
@@ -50,8 +49,6 @@ void WordClock::displayWordClock() {
     // Point the index to the next hour (this can be used for values after half past)
     auto hourIndex = 12 + nowHour; // Offset by 12 (hours per AM / PM)
     uint8_t minuteIndex = roundedMinute;
-    printf("Hours: %i\n", hourIndex);
-    printf("Rounded min: %i\n", roundedMinute);
 
     // If the time is half past or earlier, decrement the index value by one to point the current hour.
     if (roundedMinute <= 30) {
@@ -103,7 +100,6 @@ void WordClock::displayWordClock() {
         }
     }
 
-    printf("Print Hour: %i\n", hourIndex);
     // Hour
     display.setPixels(TIME_WORDS_HOURS[hourIndex]);
 }
@@ -180,7 +176,7 @@ boolean WordClock::shouldUpdateView() {
     //	- date / time modes should be updated	3Hz
     //	- temp mode								1Hz
 
-    return true; // TODO: Temp fix
+    // return true; // TODO: Temp fix
 
     uint32_t timeSinceLastUpdate = millis() - lastViewUpdateTimestamp;
     boolean updateView = false;

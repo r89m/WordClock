@@ -52,8 +52,6 @@ uint8_t TouchSensitivity_Release = 5;
 
 AsyncWebServer server(80);
 
-// TODO: Move WordClock into its own Class - pass in TimeSource and Display - Serial / LEDs or both
-// TODO: Serial output - use Grid letters
 // TODO: Migrate to Wifi Core
 // TODO: Enable OTACore
 
