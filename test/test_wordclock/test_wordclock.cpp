@@ -136,8 +136,8 @@ class TestModeDisplayFixture : public testing::TestWithParam<TestDisplayTimes> {
 auto getWordHoursTestParams() {
     std::vector<TestDisplayTimes> testDisplayTimes{};
     for (uint8_t i = 0; i < 24; i++) {
-        testDisplayTimes.push_back({.hours = i, 17, 39});
-        testDisplayTimes.push_back({.hours = i, 42, 39});
+        testDisplayTimes.push_back({.hours = i, .minutes = 17, .seconds = 39});
+        testDisplayTimes.push_back({.hours = i, .minutes = 42, .seconds = 39});
     }
 
     return testing::ValuesIn(testDisplayTimes);
@@ -146,7 +146,7 @@ auto getWordHoursTestParams() {
 auto getWordMinutesTestParams() {
     std::vector<TestDisplayTimes> testDisplayTimes{};
     for (float i = 0; i < 60; i += 2.5f) {
-        testDisplayTimes.push_back({.hours = 17, static_cast<uint8_t>(std::lround(i)), 39});
+        testDisplayTimes.push_back({.hours = 17, .minutes = static_cast<uint8_t>(std::lround(i)), .seconds = 39});
     }
 
     return testing::ValuesIn(testDisplayTimes);
@@ -155,7 +155,7 @@ auto getWordMinutesTestParams() {
 auto getLiveTimeTestParams() {
     std::vector<TestDisplayTimes> testDisplayTimes{};
     for (int i = 0; i < 12; i++) {
-        testDisplayTimes.push_back({.hours = i * 2, i * 5, 60 - (i * 5)});
+        testDisplayTimes.push_back({.hours = i * 2, .minutes = i * 5, .seconds = 60 - (i * 5)});
     }
 
     return testing::ValuesIn(testDisplayTimes);
@@ -164,7 +164,7 @@ auto getLiveTimeTestParams() {
 auto getSecondsTestParams() {
     std::vector<TestDisplayTimes> testDisplayTimes{};
     for (uint8_t i = 0; i < 60; i++) {
-        testDisplayTimes.push_back({.hours = 8, 17, i});
+        testDisplayTimes.push_back({.hours = 8, .minutes = 17, .seconds = i});
     }
 
     return testing::ValuesIn(testDisplayTimes);
